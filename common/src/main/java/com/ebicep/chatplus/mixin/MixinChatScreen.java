@@ -21,6 +21,7 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -345,13 +346,22 @@ public abstract class MixinChatScreen extends Screen implements IMixinChatScreen
         cir.cancel();
     }
 
-    @Inject(method = "handleChatInput", at = @At("HEAD"), cancellable = true)
-    private void handleChatInput(String string, boolean bl, CallbackInfoReturnable<Boolean> cir) {
+    @Redirect(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/ChatScreen;handleChatInput(Ljava/lang/String;Z)Z"))
+    private boolean onHandleChatInput(ChatScreen instance, String string, boolean bl) {
         if (!Config.INSTANCE.getValues().getEnabled()) {
-            return;
+            return instance.handleChatInput(string, bl);
         }
-        cir.setReturnValue(ChatPlusScreenAdapter.INSTANCE.handleChatInput(thisScreen(), string));
-        cir.cancel();
+
+        return ChatPlusScreenAdapter.INSTANCE.handleChatInput(thisScreen(), string);
     }
+
+//    @Inject(method = "handleChatInput", at = @At("HEAD"), cancellable = true)
+//    private void handleChatInput(String string, boolean bl, CallbackInfoReturnable<Boolean> cir) {
+//        if (!Config.INSTANCE.getValues().getEnabled()) {
+//            return;
+//        }
+//        cir.setReturnValue(ChatPlusScreenAdapter.INSTANCE.handleChatInput(thisScreen(), string));
+//        cir.cancel();
+//    }
 
 }
