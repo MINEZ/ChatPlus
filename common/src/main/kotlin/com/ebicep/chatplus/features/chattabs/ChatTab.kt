@@ -250,7 +250,7 @@ class ChatTab : MessageFilterFormatted {
         val removedMessages = mutableListOf<ChatPlusGuiMessage>()
         if (Config.values.maxMessages > 0) {
             while (this.messages.size > Config.values.maxMessages) {
-                val removed = this.messages.removeFirst()
+                val removed = this.messages.removeAt(0)
                 EventBus.post(ChatTabRemoveMessageEvent(chatWindow, this, removed))
                 removedMessages.add(removed)
             }
@@ -289,15 +289,15 @@ class ChatTab : MessageFilterFormatted {
             this.displayedMessages.isNotEmpty() &&
             this.messages[0] !== this.displayedMessages[0].linkedMessage
         ) {
-            val removed = this.displayedMessages.removeFirst()
+            val removed = this.displayedMessages.removeAt(0)
             EventBus.post(ChatTabRemoveDisplayMessageEvent(chatWindow, this, removed))
             removedMessages.add(removed)
             if (wasFiltered) {
-                unfilteredDisplayedMessages.removeFirst()
+                unfilteredDisplayedMessages.removeAt(0)
             }
         }
         while (this.unfilteredDisplayedMessages.isNotEmpty() && this.messages[0] !== this.unfilteredDisplayedMessages[0].linkedMessage) {
-            unfilteredDisplayedMessages.removeFirst()
+            unfilteredDisplayedMessages.removeAt(0)
         }
         return NewDisplayMessageResult(displayMessageEvent, addedComponents, removedMessages)
     }
