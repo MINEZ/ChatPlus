@@ -2,6 +2,7 @@ package com.ebicep.chatplus.hud
 
 import com.ebicep.chatplus.IChatScreen
 import com.ebicep.chatplus.config.Config
+import com.ebicep.chatplus.config.Config.values
 import com.ebicep.chatplus.events.EventBus
 import com.ebicep.chatplus.features.InputOverFlowAutoFill
 import com.ebicep.chatplus.hud.ChatManager.sentMessages
@@ -18,7 +19,8 @@ object ChatPlusScreenAdapter {
 
     fun handleInitPre(chatScreen: ChatScreen) {
         chatScreen as IChatScreen
-        chatScreen.chatPlusWidth = chatScreen.width
+        val w = values.inputBoxSettings.getCalculatedWidth()
+        chatScreen.chatPlusWidth = if (w < 0 || values.vanillaInputBox) chatScreen.width else w
         EventBus.post(ChatScreenInitPreEvent(chatScreen))
     }
 
@@ -57,9 +59,13 @@ object ChatPlusScreenAdapter {
     }
 
     fun handleMouseScrolled(chatScreen: ChatScreen, mouseX: Double, mouseY: Double, amountX: Double, amountY: Double): Boolean {
-        if (EventBus.post(ChatScreenMouseScrolledEvent(chatScreen, mouseX, mouseY, amountX)).returnFunction) {
+        if (EventBus.post(ChatScreenMouseScrolledEvent(chatScreen, mouseX, mouseY, amountY)).returnFunction) {
             return true
         }
+        return scrollChat(amountY)
+    }
+
+    fun scrollChat(amountY: Double): Boolean {
         // control = no scroll
         // shift = fine scroll
         // alt = triple scroll
@@ -67,7 +73,7 @@ object ChatPlusScreenAdapter {
         if (InputConstants.isKeyDown(window, Config.values.keyNoScroll.value)) {
             return true
         }
-        val scrollAmount = if (Config.values.invertedScrolling) -amountX else amountX
+        val scrollAmount = if (Config.values.invertedScrolling) -amountY else amountY
         var delta = Mth.clamp(scrollAmount, -1.0, 1.0)
         if (InputConstants.isKeyDown(window, Config.values.keyLargeScroll.value)) {
             delta *= 21.0
